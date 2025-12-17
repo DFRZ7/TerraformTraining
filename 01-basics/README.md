@@ -79,7 +79,7 @@ This creates an Azure Resource Group with:
 - Resource type: `azurerm_resource_group`
 - Local name: `main` (used to reference this resource)
 - Azure name: `rg-terraform-basics`
-- Location: `East US`
+- Location: `Central US`
 - Tags for organization
 
 ---
@@ -91,7 +91,7 @@ This creates an Azure Resource Group with:
 Navigate to this directory:
 
 ```powershell
-cd "C:\Users\$env:USERNAME\Desktop\Terraform Training\01-basics"
+cd "C:\Users\$env:USERNAME\Desktop\Terraform-Training-Workspace"
 ```
 
 Initialize Terraform (downloads provider plugins):
@@ -195,7 +195,7 @@ Terraform will perform the following actions:
   # azurerm_resource_group.main will be created
   + resource "azurerm_resource_group" "main" {
       + id       = (known after apply)
-      + location = "eastus"
+      + location = "centralus"
       + name     = "rg-terraform-basics"
       + tags     = {
           + "Environment" = "Training"

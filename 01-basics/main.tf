@@ -15,7 +15,7 @@ provider "azurerm" {
 
 # Create a Resource Group
 resource "azurerm_resource_group" "main" {
-  name     = "rg-terraform-basics23"
+  name     = "rg-terraform-basics"
   location = "Central US"
 
   tags = {
