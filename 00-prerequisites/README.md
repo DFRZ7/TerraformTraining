@@ -4,35 +4,37 @@
 
 This module covers the installation and configuration of required tools for Terraform development with Azure.
 
-**Duration:** 10 minutes
+**Duration:** 15-20 minutes
 
 ## Prerequisites
 
-**PowerShell Required:** All commands in this training will be executed using PowerShell. Ensure you have PowerShell 5.1 or later installed on your Windows system. You can verify your PowerShell version by running:
+**PowerShell Required:** All commands in this training will be executed using PowerShell **running as Administrator**. Ensure you have PowerShell 5.1 or later installed on your Windows system.
+
+**How to run PowerShell as Administrator:**
+
+1. Press the Windows key
+2. Type "PowerShell"
+3. Right-click on "Windows PowerShell"
+4. Select "Run as administrator"
+
+You can verify your PowerShell version by running:
 
 ```powershell
 $PSVersionTable.PSVersion
 ```
 
+> **Troubleshooting Tip:** If a command is not working as expected, close the terminal, open a new PowerShell window as Administrator, and try the command again.
+
 ## Required Tools
 
 ### 1. Terraform
 
-**Windows Installation:**
+**Windows Installation (Manual):**
 
-Option A: Using Chocolatey (recommended)
-
-```powershell
-# Run PowerShell as Administrator
-choco install terraform
-```
-
-**Note:** Chocolatey commands must be run in an elevated PowerShell session (Run as Administrator).
-
-Option B: Manual Installation
-
-1. Download Terraform for Windows from the official HashiCorp site:
+1. Download Terraform for Windows **AMD64** from the official HashiCorp site:
    https://developer.hashicorp.com/terraform/install#windows
+
+   - Select the **AMD64** version for 64-bit Windows systems
 
 2. Extract the zip file to a directory (e.g., `C:\terraform`)
 
@@ -61,7 +63,7 @@ terraform version
 Expected output:
 
 ```
-Terraform v1.13.x
+Terraform v1.14.x
 ```
 
 ---
@@ -70,8 +72,11 @@ Terraform v1.13.x
 
 **Windows Installation:**
 
-Follow the official Microsoft documentation for the latest installation methods:
-https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
+Download and install the **Azure CLI MSI installer (64-bit)** from the official Microsoft documentation:
+https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=msi
+
+- Select the **64-bit MSI** option for your Windows system
+- Run the installer and follow the prompts
 
 **Verify Installation:**
 
@@ -82,7 +87,7 @@ az --version
 Expected output:
 
 ```
-azure-cli                         2.x.x
+azure-cli                         2.81.x
 ```
 
 ---
