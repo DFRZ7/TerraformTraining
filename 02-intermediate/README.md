@@ -38,7 +38,7 @@ $env:ARM_TENANT_ID = (az account show --query tenantId -o tsv)
 ```
 
 ---
-
+## Hands-On Lab
 ## Part 1: Create Remote State Storage
 
 ### Why Remote State?
@@ -116,8 +116,8 @@ Write-Host "Container: $CONTAINER"
 Create a folder for this module on your Desktop:
 
 ```powershell
-New-Item -ItemType Directory -Path "$env:USERPROFILE\Desktop\02-intermediate" -Force
-cd "$env:USERPROFILE\Desktop\02-intermediate"
+New-Item -ItemType Directory -Path "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate" -Force
+cd "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate"
 ```
 
 ### Action 6: Create the Module Folder
