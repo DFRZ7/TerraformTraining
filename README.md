@@ -1,16 +1,17 @@
-# Terraform Training — Foundations (Modules 00–01)
+# Terraform Training — Foundations and Intermediate
 
-This repository contains the foundational portion of the Terraform for Azure training program.  
+This repository contains the Terraform for Azure training program.  
 It includes:
 
 - **Module 00 – Prerequisites**
 - **Module 01 – Terraform Basics**
+- **Module 02 – Intermediate (Remote State, Variables, Modules)**
 
 These modules are designed for Azure engineers who are new to Terraform or solidifying their Infrastructure‑as‑Code (IaC) fundamentals.
 
 ## Learning Objectives
 
-After completing Modules 00–01, learners will be able to:
+After completing Modules 00–02, learners will be able to:
 
 - Install and verify Terraform and Azure CLI
 - Authenticate to Azure using Azure CLI
@@ -19,6 +20,10 @@ After completing Modules 00–01, learners will be able to:
   `init → fmt → validate → plan → apply → destroy`
 - Understand the purpose of the Terraform state file
 - Deploy and destroy their first Azure resource
+- Configure remote state with Azure Storage backend
+- Define variables with types, validation, and defaults
+- Create and use reusable Terraform modules
+- Deploy Azure App Service with Linux runtime
 
 ## Prerequisites
 
@@ -60,6 +65,23 @@ Create your first Terraform configuration to deploy an Azure Resource Group.
 - Understand state files
 - Run `terraform destroy`
 
+---
+
+### Module 02: Intermediate (45-60 minutes)
+
+**Location:** `02-intermediate/`
+
+Learn remote state management, variables with validation, and reusable modules by deploying an Azure App Service.
+
+**Actions:**
+
+- Bootstrap Azure Storage for remote state
+- Configure backend with state locking
+- Define variables with types and validation
+- Create and use a reusable App Service module
+- Deploy a Linux Web App with Node.js runtime
+- Switch between environments (dev/test)
+
 ## Clean Up
 
 To avoid Azure charges, remember to destroy all resources after completing the training:
@@ -77,5 +99,5 @@ terraform destroy
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** December 2025
+**Version:** 1.1  
+**Last Updated:** January 2026

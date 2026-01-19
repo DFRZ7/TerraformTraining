@@ -32,6 +32,9 @@
 
 terraform {
   backend "azurerm" {
+    # Use Azure AD authentication (from az login)
+    use_azuread_auth = true
+
     # Values provided via -backend-config during init
     # resource_group_name  = "rg-tfstate"
     # storage_account_name = "sttfstate"
