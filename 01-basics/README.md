@@ -86,7 +86,28 @@ This creates an Azure Resource Group with:
 
 ## Hands-On Actions
 
-### Action 1: Initialize Terraform
+### Action 1: Create/Verify the Terraform Configuration (main.tf)
+
+
+Terraform does not generate configuration files for you. You must create the Terraform files (like `main.tf`) manually before running `terraform init`.
+Ensure you have a `main.tf` file in this folder (01-basics/) containing the Terraform, provider, and resource blocks described below.
+
+### Terraform Block
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+  }
+  required_version = ">= 1.0"
+}
+```
+
+
+### Action 2: Initialize Terraform
 
 Navigate to this directory:
 
@@ -136,7 +157,7 @@ commands will detect it and remind you to do so if necessary.
 
 ---
 
-### Action 2: Validate Configuration
+### Action 3: Validate Configuration
 
 Check if your configuration is syntactically valid:
 
@@ -152,7 +173,7 @@ Success! The configuration is valid.
 
 ---
 
-### Action 3: Set Azure Subscription and Tenant
+### Action 4: Set Azure Subscription and Tenant
 
 Configure your Azure subscription and tenant for Terraform authentication:
 
@@ -177,7 +198,7 @@ az account show --query tenantId --output tsv
 
 ---
 
-### Action 4: Plan the Changes
+### Action 5: Plan the Changes
 
 Preview what Terraform will do:
 
@@ -222,7 +243,7 @@ This note reminds you that the plan is not saved. We'll cover using the `-out` o
 
 ---
 
-### Action 5: Apply the Configuration
+### Action 6: Apply the Configuration
 
 Create the resources:
 
@@ -253,7 +274,7 @@ Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
 ---
 
-### Action 6: Verify in Azure Portal
+### Action 7: Verify in Azure Portal
 
 Open the Azure Portal and verify:
 
@@ -277,7 +298,7 @@ centralus   rg-terraform-basics
 
 ---
 
-### Action 7: Examine Terraform State
+### Action 8: Examine Terraform State
 
 Terraform tracks your infrastructure in a state file:
 
@@ -319,7 +340,7 @@ Get-Content terraform.tfstate
 
 ---
 
-### Action 8: Make a Change
+### Action 9: Make a Change
 
 Edit `main.tf` and add a new tag:
 
@@ -379,7 +400,7 @@ az group show --name rg-terraform-basics --query tags --output json
 
 ---
 
-### Action 9: Clean Up Resources
+### Action 10: Clean Up Resources
 
 Destroy the infrastructure:
 
