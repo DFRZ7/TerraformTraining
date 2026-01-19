@@ -2,13 +2,13 @@
 
 ## Overview
 
-In this module, you will build on your Terraform basics knowledge by learning three essential concepts:
+In this module, you will learn three essential Terraform concepts:
 
-1. **Remote State** - Store state in Azure Storage for team collaboration
-2. **Variables** - Make configurations flexible and reusable
+1. **Remote State** - Store state in Azure Storage for team collaboration and locking
+2. **Variables** - Make configurations flexible with typed inputs and validation
 3. **Modules** - Organize code into reusable components
 
-You will deploy an **Azure App Service (Linux)** running a simple web application.
+You will deploy an **Azure App Service (Linux)** using these concepts.
 
 **Duration:** 45-60 minutes
 
@@ -26,11 +26,11 @@ You will deploy an **Azure App Service (Linux)** running a simple web applicatio
 
 Before starting, ensure you have completed:
 
-- Module 00: Prerequisites (Terraform, Azure CLI, Git installed)
+- Module 00: Prerequisites (Terraform, Azure CLI installed)
 - Module 01: Basics (understand init, plan, apply, destroy)
 - Authenticated to Azure with `az login`
 
-Set your Azure environment variables:
+Set your Azure environment variables in PowerShell:
 
 ```powershell
 $env:ARM_SUBSCRIPTION_ID = (az account show --query id -o tsv)
@@ -39,7 +39,7 @@ $env:ARM_TENANT_ID = (az account show --query tenantId -o tsv)
 
 ---
 
-## Part 1: Understanding Remote State
+## Part 1: Create Remote State Storage
 
 ### Why Remote State?
 
@@ -51,44 +51,57 @@ In Module 01, Terraform stored state locally in `terraform.tfstate`. This works 
 | No locking          | Concurrent runs can corrupt state           |
 | No backup           | Losing the file = losing track of resources |
 
-**Remote state** solves these problems by storing state in Azure Storage with automatic locking.
+**Remote state** stores your state file in Azure Storage. Terraform automatically locks the file during operations, preventing team members from making conflicting changes.
 
 ---
 
-### Action 1: Create the Remote State Storage
+### Action 1: Set Variables for State Storage
 
-First, create the Azure Storage account that will hold your Terraform state.
-
-**Choose unique names** (storage accounts must be globally unique):
+Open PowerShell and set these variables. The storage account name must be globally unique, so we append a random number:
 
 ```powershell
-# Set your variables (customize these!)
 $RESOURCE_GROUP = "rg-tfstate"
-$STORAGE_ACCOUNT = "sttfstate$(Get-Random -Maximum 9999)"  # e.g., sttfstate1234
+$STORAGE_ACCOUNT = "sttfstate$(Get-Random -Maximum 9999)"
 $CONTAINER = "tfstate"
 $LOCATION = "centralus"
-
-# Create resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
-
-# Create storage account
-az storage account create `
-  --name $STORAGE_ACCOUNT `
-  --resource-group $RESOURCE_GROUP `
-  --location $LOCATION `
-  --sku Standard_LRS `
-  --kind StorageV2
-
-# Create blob container
-az storage container create `
-  --name $CONTAINER `
-  --account-name $STORAGE_ACCOUNT
 ```
 
-**Write down your storage account name!** You'll need it in the next step.
+### Action 2: Create the Storage Resources
+
+Run each command one at a time:
 
 ```powershell
-# Display your values
+az group create --name $RESOURCE_GROUP --location $LOCATION
+```
+
+```powershell
+az storage account create --name $STORAGE_ACCOUNT --resource-group $RESOURCE_GROUP --location $LOCATION --sku Standard_LRS --kind StorageV2
+```
+
+```powershell
+az storage container create --name $CONTAINER --account-name $STORAGE_ACCOUNT --auth-mode login
+```
+
+### Action 3: Assign Storage Permissions
+
+Terraform uses Azure AD authentication to access the storage account. You need the **Storage Blob Data Contributor** role:
+
+```powershell
+$USER_ID = az ad signed-in-user show --query id -o tsv
+$SUBSCRIPTION_ID = az account show --query id -o tsv
+```
+
+```powershell
+az role assignment create --role "Storage Blob Data Contributor" --assignee $USER_ID --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT"
+```
+
+Wait 30-60 seconds for the role assignment to propagate.
+
+### Action 4: Save Your Values
+
+Write down these values - you will need them later:
+
+```powershell
 Write-Host "Resource Group: $RESOURCE_GROUP"
 Write-Host "Storage Account: $STORAGE_ACCOUNT"
 Write-Host "Container: $CONTAINER"
@@ -98,37 +111,42 @@ Write-Host "Container: $CONTAINER"
 
 ## Part 2: Create the Project Structure
 
-### Action 2: Set Up the Working Directory
+### Action 5: Create the Working Directory
 
-Navigate to the module folder and create the file structure:
+Create a folder for this module on your Desktop:
 
 ```powershell
-cd C:\Users\$env:USERNAME\Desktop\TerraformTraining\02-intermediate
+New-Item -ItemType Directory -Path "$env:USERPROFILE\Desktop\02-intermediate" -Force
+cd "$env:USERPROFILE\Desktop\02-intermediate"
+```
 
-# Create the module folder structure
+### Action 6: Create the Module Folder
+
+Create the folder structure for the App Service module:
+
+```powershell
 New-Item -ItemType Directory -Path "modules\appservice" -Force
 ```
 
-Your folder should look like this:
+Your folder now looks like this:
 
 ```
 02-intermediate/
-├── main.tf              (you will create)
-├── variables.tf         (you will create)
-├── outputs.tf           (you will create)
-├── dev.tfvars           (you will create)
 └── modules/
     └── appservice/
-        ├── main.tf      (you will create)
-        ├── variables.tf (you will create)
-        └── outputs.tf   (you will create)
 ```
 
 ---
 
-### Action 3: Create versions.tf
+## Part 3: Create the Terraform Files
 
-Create a new file `versions.tf` with the following content:
+We will now create each file. Pay attention to **where** each file should be created.
+
+### Action 7: Create versions.tf
+
+**Location:** `02-intermediate/versions.tf`
+
+Create a new file named `versions.tf` in the `02-intermediate` folder with this content:
 
 ```hcl
 terraform {
@@ -143,48 +161,51 @@ terraform {
 }
 ```
 
-This pins the Terraform and provider versions for consistency.
+**What this does:** Pins the Terraform version and Azure provider version. This ensures everyone on the team uses compatible versions.
+
+Your folder now looks like this:
+
+```
+02-intermediate/
+├── versions.tf
+└── modules/
+    └── appservice/
+```
 
 ---
 
-### Action 4: Create main.tf with Remote Backend
+### Action 8: Create main.tf
 
-Create `main.tf` with the backend configuration:
+**Location:** `02-intermediate/main.tf`
+
+Create a new file named `main.tf` in the `02-intermediate` folder:
 
 ```hcl
-# Configure remote state backend
 terraform {
   backend "azurerm" {
     use_azuread_auth = true
-    # Other values provided via -backend-config during init
   }
 }
 
-# Configure the Azure Provider
 provider "azurerm" {
   features {}
 }
 
-# Local values for naming
 locals {
   resource_prefix = "${var.project_name}-${var.environment}"
-
   common_tags = {
     Environment = var.environment
     Project     = var.project_name
     ManagedBy   = "Terraform"
-    Module      = "02-intermediate"
   }
 }
 
-# Resource Group
 resource "azurerm_resource_group" "main" {
   name     = "rg-${local.resource_prefix}"
   location = var.location
   tags     = local.common_tags
 }
 
-# Call the App Service module
 module "appservice" {
   source = "./modules/appservice"
 
@@ -196,11 +217,29 @@ module "appservice" {
 }
 ```
 
+**What this does:**
+
+- Configures the Azure Storage backend for remote state
+- Creates a resource group with consistent naming
+- Calls the App Service module (which we will create next)
+
+Your folder now looks like this:
+
+```
+02-intermediate/
+├── versions.tf
+├── main.tf
+└── modules/
+    └── appservice/
+```
+
 ---
 
-### Action 5: Create variables.tf
+### Action 9: Create variables.tf
 
-Create `variables.tf` to define your input variables:
+**Location:** `02-intermediate/variables.tf`
+
+Create a new file named `variables.tf` in the `02-intermediate` folder:
 
 ```hcl
 variable "environment" {
@@ -216,7 +255,7 @@ variable "environment" {
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "Central US"
+  default     = "centralus"
 }
 
 variable "project_name" {
@@ -237,17 +276,19 @@ variable "app_service_sku" {
 }
 ```
 
-**Key Concepts:**
+**What this does:** Defines input variables with:
 
-- `type` - Enforces the variable type (string, number, bool, list, map)
+- `type` - Enforces the data type (string, number, bool, list, map)
 - `default` - Optional default value
-- `validation` - Custom validation rules with error messages
+- `validation` - Custom rules with error messages
 
 ---
 
-### Action 6: Create outputs.tf
+### Action 10: Create outputs.tf
 
-Create `outputs.tf` to expose useful information:
+**Location:** `02-intermediate/outputs.tf`
+
+Create a new file named `outputs.tf` in the `02-intermediate` folder:
 
 ```hcl
 output "resource_group_name" {
@@ -261,63 +302,49 @@ output "app_service_url" {
 }
 ```
 
+**What this does:** Exposes useful information after `terraform apply` completes.
+
 ---
 
-### Action 7: Create dev.tfvars
+### Action 11: Create dev.tfvars
 
-Create `dev.tfvars` for your development environment values:
+**Location:** `02-intermediate/dev.tfvars`
+
+Create a new file named `dev.tfvars` in the `02-intermediate` folder:
 
 ```hcl
 environment     = "dev"
-location        = "Central US"
+location        = "centralus"
 project_name    = "tftraining"
 app_service_sku = "F1"
 ```
 
----
+**What this does:** Provides values for the development environment. You can create different `.tfvars` files for test and prod.
 
-## Part 3: Create the App Service Module
+Your folder now looks like this:
 
-Modules are reusable packages of Terraform configuration. Let's create one for App Service.
-
-### Action 8: Create modules/appservice/main.tf
-
-```hcl
-# App Service Plan
-resource "azurerm_service_plan" "main" {
-  name                = "asp-${var.app_name}"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  os_type             = "Linux"
-  sku_name            = var.sku_name
-  tags                = var.tags
-}
-
-# Linux Web App
-resource "azurerm_linux_web_app" "main" {
-  name                = var.app_name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  service_plan_id     = azurerm_service_plan.main.id
-  https_only          = true
-
-  site_config {
-    application_stack {
-      node_version = "18-lts"
-    }
-  }
-
-  app_settings = {
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
-  }
-
-  tags = var.tags
-}
+```
+02-intermediate/
+├── versions.tf
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── dev.tfvars
+└── modules/
+    └── appservice/
 ```
 
 ---
 
-### Action 9: Create modules/appservice/variables.tf
+## Part 4: Create the App Service Module
+
+Modules are reusable packages of Terraform code. We will create a module that deploys an App Service Plan and Linux Web App.
+
+### Action 12: Create modules/appservice/variables.tf
+
+**Location:** `02-intermediate/modules/appservice/variables.tf`
+
+Create this file inside the `modules/appservice` folder:
 
 ```hcl
 variable "app_name" {
@@ -350,7 +377,54 @@ variable "tags" {
 
 ---
 
-### Action 10: Create modules/appservice/outputs.tf
+### Action 13: Create modules/appservice/main.tf
+
+**Location:** `02-intermediate/modules/appservice/main.tf`
+
+Create this file inside the `modules/appservice` folder:
+
+```hcl
+resource "azurerm_service_plan" "main" {
+  name                = "asp-${var.app_name}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  os_type             = "Linux"
+  sku_name            = var.sku_name
+  tags                = var.tags
+}
+
+locals {
+  is_free_tier = contains(["F1", "D1"], var.sku_name)
+}
+
+resource "azurerm_linux_web_app" "main" {
+  name                = var.app_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  service_plan_id     = azurerm_service_plan.main.id
+  https_only          = true
+
+  site_config {
+    always_on = local.is_free_tier ? false : true
+
+    application_stack {
+      node_version = "18-lts"
+    }
+  }
+
+  tags = var.tags
+}
+```
+
+**Note:** The `always_on` setting is disabled for Free tier (F1) because it's not supported.
+
+---
+
+### Action 14: Create modules/appservice/outputs.tf
+
+**Location:** `02-intermediate/modules/appservice/outputs.tf`
+
+Create this file inside the `modules/appservice` folder:
 
 ```hcl
 output "hostname" {
@@ -364,20 +438,32 @@ output "app_id" {
 }
 ```
 
+Your complete folder structure:
+
+```
+02-intermediate/
+├── versions.tf
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── dev.tfvars
+└── modules/
+    └── appservice/
+        ├── variables.tf
+        ├── main.tf
+        └── outputs.tf
+```
+
 ---
 
-## Part 4: Deploy with Remote State
+## Part 5: Deploy with Remote State
 
-### Action 11: Initialize with Remote Backend
+### Action 15: Initialize Terraform
 
-Now initialize Terraform with your remote backend. **Replace the values** with your storage account details from Action 1:
+Replace `YOUR_STORAGE_ACCOUNT` with the storage account name from Action 4:
 
 ```powershell
-terraform init `
-  -backend-config="resource_group_name=rg-tfstate" `
-  -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT" `
-  -backend-config="container_name=tfstate" `
-  -backend-config="key=dev/appservice.tfstate"
+terraform init -backend-config="resource_group_name=rg-tfstate" -backend-config="storage_account_name=YOUR_STORAGE_ACCOUNT" -backend-config="container_name=tfstate" -backend-config="key=dev/appservice.tfstate"
 ```
 
 **Expected output:**
@@ -389,32 +475,32 @@ Successfully configured the backend "azurerm"!
 Initializing modules...
 - appservice in modules\appservice
 
-Initializing provider plugins...
+Terraform has been successfully initialized!
 ```
 
 ---
 
-### Action 12: Validate Your Configuration
+### Action 16: Validate Your Configuration
+
+Check for syntax errors:
 
 ```powershell
 terraform validate
 ```
 
-If there are errors, check your file syntax and fix them.
+If there are errors, review your files and fix them.
 
 ---
 
-### Action 13: Plan the Deployment
+### Action 17: Plan the Deployment
 
-Before applying, predict what Terraform will create:
-
-**Your prediction:**
+**Before running plan, predict what Terraform will create:**
 
 1. 1 Resource Group
 2. 1 App Service Plan
 3. 1 Linux Web App
 
-Now verify with plan:
+Now run plan to verify:
 
 ```powershell
 terraform plan -var-file="dev.tfvars"
@@ -424,7 +510,9 @@ Does the output match your prediction?
 
 ---
 
-### Action 14: Apply the Configuration
+### Action 18: Apply the Configuration
+
+Deploy the resources:
 
 ```powershell
 terraform apply -var-file="dev.tfvars"
@@ -432,7 +520,7 @@ terraform apply -var-file="dev.tfvars"
 
 Type `yes` when prompted.
 
-After completion, Terraform shows your outputs:
+After completion, Terraform displays the outputs:
 
 ```
 Outputs:
@@ -441,109 +529,37 @@ app_service_url = "https://tftraining-dev-app.azurewebsites.net"
 resource_group_name = "rg-tftraining-dev"
 ```
 
----
-
-### Action 15: Verify the Deployment
-
-Open the URL in your browser. You should see the Azure App Service default page.
-
-You can also verify via Azure CLI:
-
-```powershell
-az webapp show --name "tftraining-dev-app" --resource-group "rg-tftraining-dev" --query state
-```
+Open the URL in your browser to verify the deployment.
 
 ---
 
-## Part 5: Observe Remote State
+## Part 6: View Remote State
 
-### Action 16: View State in Azure Storage
+### Action 19: Check the State File in Azure
 
-Check that your state file is stored in Azure:
+Verify that your state file is stored in Azure Storage. Replace `YOUR_STORAGE_ACCOUNT`:
 
 ```powershell
-az storage blob list `
-  --account-name YOUR_STORAGE_ACCOUNT `
-  --container-name tfstate `
-  --output table
+az storage blob list --account-name YOUR_STORAGE_ACCOUNT --container-name tfstate --auth-mode login --output table
 ```
 
 You should see `dev/appservice.tfstate` listed.
 
----
+### Action 20: View State Contents
 
-### Action 17: Understand State Locking
-
-When Terraform runs, it creates a lock to prevent concurrent modifications.
-
-Try this:
-
-1. Start a `terraform plan` in one terminal
-2. Quickly run `terraform plan` in another terminal
-
-The second command will wait for the lock, showing:
-
-```
-Acquiring state lock. This may take a few moments...
-```
-
-This prevents team members from corrupting state with simultaneous operations.
-
----
-
-## Part 6: Make Changes
-
-### Action 18: Change the SKU
-
-Edit `dev.tfvars` and change the SKU:
-
-```hcl
-app_service_sku = "B1"
-```
-
-**Predict:** What will Terraform do?
+You can view the state file contents with this command:
 
 ```powershell
-terraform plan -var-file="dev.tfvars"
+terraform show
 ```
 
-You should see an **in-place update** to the App Service Plan:
-
-```
-~ sku_name = "F1" -> "B1"
-
-Plan: 0 to add, 1 to change, 0 to destroy.
-```
-
-**Apply the change:**
-
-```powershell
-terraform apply -var-file="dev.tfvars"
-```
-
----
-
-### Action 19: Test Variable Validation
-
-Try setting an invalid SKU:
-
-```powershell
-terraform plan -var-file="dev.tfvars" -var="app_service_sku=INVALID"
-```
-
-Terraform rejects it with your custom error message:
-
-```
-Error: Invalid value for variable
-
-SKU must be one of: F1, B1, B2, S1.
-```
+This displays all resources tracked in the state file.
 
 ---
 
 ## Part 7: Clean Up
 
-### Action 20: Destroy Resources
+### Action 21: Destroy Resources
 
 Remove all resources created by Terraform:
 
@@ -553,7 +569,9 @@ terraform destroy -var-file="dev.tfvars"
 
 Type `yes` when prompted.
 
-**Optional:** Delete the state storage if no longer needed:
+### Action 22: Delete State Storage (Optional)
+
+If you no longer need the state storage:
 
 ```powershell
 az group delete --name rg-tfstate --yes
@@ -565,49 +583,41 @@ az group delete --name rg-tfstate --yes
 
 In this module, you learned:
 
-| Concept          | What You Did                                |
-| ---------------- | ------------------------------------------- |
-| **Remote State** | Stored state in Azure Storage with locking  |
-| **Variables**    | Defined inputs with types and validation    |
-| **Modules**      | Created reusable App Service component      |
-| **Environments** | Used tfvars for environment-specific values |
+| Concept          | What You Did                                         |
+| ---------------- | ---------------------------------------------------- |
+| **Remote State** | Stored state in Azure Storage with automatic locking |
+| **Variables**    | Defined typed inputs with validation rules           |
+| **Modules**      | Created a reusable App Service component             |
+| **Environments** | Used tfvars files for environment-specific values    |
 
 ---
 
 ## Key Commands Reference
 
-| Command                                  | Purpose                         |
-| ---------------------------------------- | ------------------------------- |
-| `terraform init -backend-config=...`     | Initialize with remote backend  |
-| `terraform plan -var-file=dev.tfvars`    | Plan with environment variables |
-| `terraform apply -var-file=dev.tfvars`   | Apply configuration             |
-| `terraform destroy -var-file=dev.tfvars` | Destroy all resources           |
-
----
-
-## Next Steps
-
-You're now ready for more advanced topics:
-
-- Data sources and resource dependencies
-- Workspaces for environment management
-- CI/CD integration with GitHub Actions
+| Command                                  | Purpose                        |
+| ---------------------------------------- | ------------------------------ |
+| `terraform init -backend-config=...`     | Initialize with remote backend |
+| `terraform validate`                     | Check configuration syntax     |
+| `terraform plan -var-file=dev.tfvars`    | Preview changes                |
+| `terraform apply -var-file=dev.tfvars`   | Deploy resources               |
+| `terraform show`                         | View current state             |
+| `terraform destroy -var-file=dev.tfvars` | Remove all resources           |
 
 ---
 
 ## Troubleshooting
 
-**Error: Backend configuration required**
+**Error: 403 Authorization Permission Mismatch**
 
-- Ensure you passed all `-backend-config` values during init
+- You need the Storage Blob Data Contributor role. See Action 3.
 
-**Error: Storage account not found**
+**Error: always_on cannot be set to true when using Free SKU**
 
-- Verify the storage account exists: `az storage account show --name YOUR_ACCOUNT`
+- The module handles this automatically. Ensure you copied the `main.tf` correctly with the `is_free_tier` local.
 
-**Error: Access denied**
+**Error: Backend configuration changed**
 
-- Re-authenticate: `az login`
+- Run `terraform init -reconfigure` to update the backend.
 
 ---
 
