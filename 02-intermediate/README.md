@@ -20,56 +20,56 @@ This module teaches advanced Terraform concepts by deploying an Azure App Servic
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Azure Subscription                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    Resource Group: rg-tftraining-{env}               │    │
-│  │                                                                      │    │
-│  │   ┌────────────────────────┐    ┌────────────────────────────────┐  │    │
-│  │   │   App Service Plan     │    │       Linux Web App            │  │    │
-│  │   │   asp-tftraining-...   │───▶│   tftraining-webapp-{env}      │  │    │
-│  │   │   (Linux, SKU: F1/B1)  │    │   - Node.js 18 LTS             │  │    │
-│  │   └────────────────────────┘    │   - Managed Identity           │  │    │
-│  │                                  │   - HTTPS Only                 │  │    │
-│  │                                  └────────────────────────────────┘  │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                Resource Group: rg-tfstate-{env} (Separate)           │    │
-│  │                                                                      │    │
-│  │   ┌────────────────────────────────────────────────────────────┐    │    │
-│  │   │              Storage Account: sttfstate{unique}             │    │    │
-│  │   │                                                             │    │    │
-│  │   │   ┌─────────────────────────────────────────────────┐      │    │    │
-│  │   │   │         Container: tfstate                       │      │    │    │
-│  │   │   │                                                  │      │    │    │
-│  │   │   │   📄 dev/appservice.tfstate                      │      │    │    │
-│  │   │   │   📄 test/appservice.tfstate                     │      │    │    │
-│  │   │   │   📄 prod/appservice.tfstate                     │      │    │    │
-│  │   │   │                                                  │      │    │    │
-│  │   │   │   Features:                                      │      │    │    │
-│  │   │   │   ✓ Soft Delete (7 days)                         │      │    │    │
-│  │   │   │   ✓ Blob Versioning                              │      │    │    │
-│  │   │   │   ✓ State Locking                                │      │    │    │
-│  │   │   └─────────────────────────────────────────────────┘      │    │    │
-│  │   └────────────────────────────────────────────────────────────┘    │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
++-----------------------------------------------------------------------------+
+|                              Azure Subscription                             |
++-----------------------------------------------------------------------------+
+|                                                                             |
+|  +-----------------------------------------------------------------------+  |
+|  |                    Resource Group: rg-tftraining-{env}                |  |
+|  |                                                                       |  |
+|  |   +------------------------+    +--------------------------------+    |  |
+|  |   |   App Service Plan     |    |       Linux Web App            |    |  |
+|  |   |   asp-tftraining-...   |--->|   tftraining-webapp-{env}      |    |  |
+|  |   |   (Linux, SKU: F1/B1)  |    |   - Node.js 18 LTS             |    |  |
+|  |   +------------------------+    |   - Managed Identity           |    |  |
+|  |                                 |   - HTTPS Only                 |    |  |
+|  |                                 +--------------------------------+    |  |
+|  +-----------------------------------------------------------------------+  |
+|                                                                             |
+|  +-----------------------------------------------------------------------+  |
+|  |                Resource Group: rg-tfstate-{env} (Separate)            |  |
+|  |                                                                       |  |
+|  |   +---------------------------------------------------------------+   |  |
+|  |   |              Storage Account: sttfstate{unique}                |   |  |
+|  |   |                                                                |   |  |
+|  |   |   +---------------------------------------------------------+ |   |  |
+|  |   |   |         Container: tfstate                              | |   |  |
+|  |   |   |                                                         | |   |  |
+|  |   |   |   - dev/appservice.tfstate                              | |   |  |
+|  |   |   |   - test/appservice.tfstate                             | |   |  |
+|  |   |   |   - prod/appservice.tfstate                             | |   |  |
+|  |   |   |                                                         | |   |  |
+|  |   |   |   Features:                                             | |   |  |
+|  |   |   |   [x] Soft Delete (7 days)                              | |   |  |
+|  |   |   |   [x] Blob Versioning                                   | |   |  |
+|  |   |   |   [x] State Locking                                     | |   |  |
+|  |   |   +---------------------------------------------------------+ |   |  |
+|  |   +---------------------------------------------------------------+   |  |
+|  +-----------------------------------------------------------------------+  |
++-----------------------------------------------------------------------------+
 
-           │
-           │  Terraform
-           │  Operations
-           ▼
-    ┌─────────────────┐
-    │   Developer     │
-    │   Workstation   │
-    │                 │
-    │  terraform init │
-    │  terraform plan │
-    │  terraform apply│
-    └─────────────────┘
+           |
+           |  Terraform
+           |  Operations
+           v
+    +------------------+
+    |   Developer      |
+    |   Workstation    |
+    |                  |
+    |  terraform init  |
+    |  terraform plan  |
+    |  terraform apply |
+    +------------------+
 ```
 
 ---
@@ -77,7 +77,7 @@ This module teaches advanced Terraform concepts by deploying an Azure App Servic
 ## File Structure
 
 ```
-module-02/
+02-intermediate/
 ├── main.tf                 # Main configuration with backend and resources
 ├── variables.tf            # Input variable definitions with validation
 ├── outputs.tf              # Output values
@@ -109,11 +109,11 @@ module-02/
 
 Before starting this module, ensure you have:
 
-1. ✅ Completed Module 00 (Prerequisites) and Module 01 (Basics)
-2. ✅ Terraform installed (v1.0+)
-3. ✅ Azure CLI installed and authenticated (`az login`)
-4. ✅ Azure subscription with permissions to create resources
-5. ✅ PowerShell (Windows) or Bash (Linux/Mac)
+1. Completed Module 00 (Prerequisites) and Module 01 (Basics)
+2. Terraform installed (v1.0+)
+3. Azure CLI installed and authenticated (`az login`)
+4. Azure subscription with permissions to create resources
+5. PowerShell (Windows) or Bash (Linux/Mac)
 
 Set your Azure subscription:
 
@@ -155,10 +155,10 @@ In Module 01, Terraform stored state in a local file (`terraform.tfstate`). This
 
 Before migrating to remote state, let's observe local state behavior.
 
-Navigate to module-02:
+Navigate to 02-intermediate:
 
 ```powershell
-cd "c:\Users\$env:USERNAME\Desktop\TerraformPresentationCXP\TerraformTraining\module-02"
+cd "c:\Users\$env:USERNAME\Desktop\TerraformPresentationCXP\TerraformTraining\02-intermediate"
 ```
 
 Initialize with local backend (temporary):
@@ -564,19 +564,19 @@ terraform init -upgrade
 
 ## Best Practices
 
-1. ✅ **Always use remote state** for team environments
-2. ✅ **Separate state per environment** using unique keys
-3. ✅ **Never commit tfvars with secrets** to version control
-4. ✅ **Use variable validation** to catch errors early
-5. ✅ **Tag all resources** consistently
-6. ✅ **Use modules** for reusable infrastructure patterns
-7. ✅ **Review plans carefully** before applying
+1. **Always use remote state** for team environments
+2. **Separate state per environment** using unique keys
+3. **Never commit tfvars with secrets** to version control
+4. **Use variable validation** to catch errors early
+5. **Tag all resources** consistently
+6. **Use modules** for reusable infrastructure patterns
+7. **Review plans carefully** before applying
 
 ---
 
 ## If You Use GitHub Copilot
 
-> 💡 **Think First, Prompt Second**
+> **Think First, Prompt Second**
 >
 > Before asking Copilot to generate Terraform code:
 >
