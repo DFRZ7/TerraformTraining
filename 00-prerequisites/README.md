@@ -33,17 +33,14 @@ $PSVersionTable.PSVersion
 
 1. Download Terraform for Windows **AMD64** from the official HashiCorp site:
    https://developer.hashicorp.com/terraform/install#windows
-
    - Select the **AMD64** version for 64-bit Windows systems
 
 2. Extract the zip file to a directory (e.g., `C:\terraform`)
-
    - Right-click the downloaded zip file
    - Select "Extract All..."
    - Choose or create the destination folder (e.g., `C:\terraform`)
 
 3. Add the directory to your PATH environment variable:
-
    - Open System Properties (Windows Key + Pause/Break or search "Environment Variables")
    - Click "Environment Variables" button
    - Under "System variables", find and select "Path"
@@ -92,7 +89,41 @@ azure-cli                         2.81.x
 
 ---
 
-### 3. Text Editor
+### 3. Git
+
+Git is required to clone the training repository.
+
+**Windows Installation:**
+
+Download and install Git from the official site:
+https://git-scm.com/download/win
+
+- Run the installer and use default settings
+- Restart your terminal after installation
+
+**Verify Installation:**
+
+```powershell
+git --version
+```
+
+Expected output:
+
+```
+git version 2.x.x
+```
+
+**Clone the Training Repository:**
+
+```powershell
+cd C:\Users\$env:USERNAME\Desktop
+git clone https://github.com/DFRZ7/TerraformTraining.git
+cd TerraformTraining
+```
+
+---
+
+### 4. Text Editor
 
 **Recommended:** Visual Studio Code with Terraform extension
 
