@@ -38,7 +38,9 @@ $env:ARM_TENANT_ID = (az account show --query tenantId -o tsv)
 ```
 
 ---
+
 ## Hands-On Lab
+
 ## Part 1: Create Remote State Storage
 
 ### Why Remote State?
@@ -63,7 +65,7 @@ Open PowerShell and set these variables. The storage account name must be global
 $RESOURCE_GROUP = "rg-tfstate"
 $STORAGE_ACCOUNT = "sttfstate$(Get-Random -Maximum 9999)"
 $CONTAINER = "tfstate"
-$LOCATION = "centralus"
+$LOCATION = "canadacentral"
 ```
 
 ### Action 2: Create the Storage Resources
@@ -255,7 +257,7 @@ variable "environment" {
 variable "location" {
   description = "Azure region for resources"
   type        = string
-  default     = "centralus"
+  default     = "canadacentral"
 }
 
 variable "project_name" {
@@ -267,7 +269,7 @@ variable "project_name" {
 variable "app_service_sku" {
   description = "App Service Plan SKU"
   type        = string
-  default     = "F1"
+  default     = "B1"
 
   validation {
     condition     = contains(["F1", "B1", "B2", "S1"], var.app_service_sku)
@@ -314,9 +316,9 @@ Create a new file named `dev.tfvars` in the `02-intermediate` folder:
 
 ```hcl
 environment     = "dev"
-location        = "centralus"
+location        = "canadacentral"
 project_name    = "tftraining"
-app_service_sku = "F1"
+app_service_sku = "B1"
 ```
 
 **What this does:** Provides values for the development environment. You can create different `.tfvars` files for test and prod.
@@ -365,7 +367,7 @@ variable "location" {
 variable "sku_name" {
   description = "App Service Plan SKU"
   type        = string
-  default     = "F1"
+  default     = "B1"
 }
 
 variable "tags" {
@@ -408,7 +410,7 @@ resource "azurerm_linux_web_app" "main" {
     always_on = local.is_free_tier ? false : true
 
     application_stack {
-      node_version = "18-lts"
+      node_version = "22-lts"
     }
   }
 
@@ -447,6 +449,11 @@ Your complete folder structure:
 ├── variables.tf
 ├── outputs.tf
 ├── dev.tfvars
+├── app/
+│   ├── server.js
+│   ├── package.json
+│   └── public/
+│       └── index.html
 └── modules/
     └── appservice/
         ├── variables.tf
@@ -533,9 +540,61 @@ Open the URL in your browser to verify the deployment.
 
 ---
 
-## Part 6: View Remote State
+## Part 6: Deploy Your Application
 
-### Action 19: Check the State File in Azure
+Now that the infrastructure is ready, let's deploy a simple landing page to your App Service!
+
+### Action 19: Navigate to the App Folder
+
+The `app` folder contains a simple Node.js application with a landing page:
+
+```
+app/
+├── server.js          # Native Node.js web server (no dependencies!)
+├── package.json       # Node.js configuration
+└── public/
+    └── index.html     # Landing page (edit this!)
+```
+
+### Action 20: Deploy the Application
+
+First, create a zip file of the application, then deploy it:
+
+```powershell
+# Make sure you're in the 02-intermediate folder
+cd "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate"
+
+# Create a zip file from the app folder
+Compress-Archive -Path "app\*" -DestinationPath "app.zip" -Force
+
+# Deploy to App Service
+az webapp deploy --resource-group rg-tftraining-dev --name tftraining-dev-app --src-path "app.zip" --type zip
+```
+
+Wait 1-2 minutes for the deployment to complete, then refresh your browser to see the landing page!
+
+### Action 21: Customize Your Page (Student Exercise)
+
+Open `app/public/index.html` in VS Code and make changes:
+
+1. Change the greeting message
+2. Update the colors
+3. Add your name
+
+Then redeploy:
+
+```powershell
+Compress-Archive -Path "app\*" -DestinationPath "app.zip" -Force
+az webapp deploy --resource-group rg-tftraining-dev --name tftraining-dev-app --src-path "app.zip" --type zip
+```
+
+Refresh the browser to see your changes!
+
+---
+
+## Part 7: View Remote State
+
+### Action 22: Check the State File in Azure
 
 Verify that your state file is stored in Azure Storage. Replace `YOUR_STORAGE_ACCOUNT`:
 
@@ -545,7 +604,7 @@ az storage blob list --account-name YOUR_STORAGE_ACCOUNT --container-name tfstat
 
 You should see `dev/appservice.tfstate` listed.
 
-### Action 20: View State Contents
+### Action 23: View State Contents
 
 You can view the state file contents with this command:
 
@@ -557,9 +616,9 @@ This displays all resources tracked in the state file.
 
 ---
 
-## Part 7: Clean Up
+## Part 8: Clean Up
 
-### Action 21: Destroy Resources
+### Action 24: Destroy Resources
 
 Remove all resources created by Terraform:
 
@@ -569,7 +628,7 @@ terraform destroy -var-file="dev.tfvars"
 
 Type `yes` when prompted.
 
-### Action 22: Delete State Storage (Optional)
+### Action 25: Delete State Storage (Optional)
 
 If you no longer need the state storage:
 
@@ -589,19 +648,22 @@ In this module, you learned:
 | **Variables**    | Defined typed inputs with validation rules           |
 | **Modules**      | Created a reusable App Service component             |
 | **Environments** | Used tfvars files for environment-specific values    |
+| **App Deploy**   | Deployed a custom landing page to App Service        |
 
 ---
 
 ## Key Commands Reference
 
-| Command                                  | Purpose                        |
-| ---------------------------------------- | ------------------------------ |
-| `terraform init -backend-config=...`     | Initialize with remote backend |
-| `terraform validate`                     | Check configuration syntax     |
-| `terraform plan -var-file=dev.tfvars`    | Preview changes                |
-| `terraform apply -var-file=dev.tfvars`   | Deploy resources               |
-| `terraform show`                         | View current state             |
-| `terraform destroy -var-file=dev.tfvars` | Remove all resources           |
+| Command                                                     | Purpose                        |
+| ----------------------------------------------------------- | ------------------------------ |
+| `terraform init -backend-config=...`                        | Initialize with remote backend |
+| `terraform validate`                                        | Check configuration syntax     |
+| `terraform plan -var-file=dev.tfvars`                       | Preview changes                |
+| `terraform apply -var-file=dev.tfvars`                      | Deploy resources               |
+| `terraform show`                                            | View current state             |
+| `terraform destroy -var-file=dev.tfvars`                    | Remove all resources           |
+| `Compress-Archive -Path "app\*" -DestinationPath "app.zip"` | Create zip from app folder     |
+| `az webapp deploy --src-path "app.zip" --type zip`          | Deploy app code to App Service |
 
 ---
 
@@ -610,10 +672,6 @@ In this module, you learned:
 **Error: 403 Authorization Permission Mismatch**
 
 - You need the Storage Blob Data Contributor role. See Action 3.
-
-**Error: always_on cannot be set to true when using Free SKU**
-
-- The module handles this automatically. Ensure you copied the `main.tf` correctly with the `is_free_tier` local.
 
 **Error: Backend configuration changed**
 
