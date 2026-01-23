@@ -457,11 +457,6 @@ Your complete folder structure:
 ├── variables.tf
 ├── outputs.tf
 ├── dev.tfvars
-├── app/
-│   ├── server.js
-│   ├── package.json
-│   └── public/
-│       └── index.html
 └── modules/
     └── appservice/
         ├── variables.tf
