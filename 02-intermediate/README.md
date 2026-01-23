@@ -547,18 +547,63 @@ Open the URL in your browser to verify the deployment.
 
 Now that the infrastructure is ready, let's deploy a simple landing page to your App Service!
 
-### Action 19: Copy the App Folder
+### Action 19: Download the App Folder
 
-Copy the `app` folder from the training repository to your working directory:
+The `app` folder contains a pre-built Node.js application. Download it to your workspace using one of these methods:
+
+**Option A: Download from GitHub (Recommended)**
+
+Download the files directly from the training repository:
 
 ```powershell
-# Copy the app folder from the repo to your workspace
-Copy-Item -Path "C:\path\to\TerraformTraining\02-intermediate\app" -Destination "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate\app" -Recurse
+# Navigate to your workspace
+cd "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate"
+
+# Create the app folder structure
+New-Item -ItemType Directory -Path "app\public" -Force
+
+# Download the application files
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DFRZ7/TerraformTraining/main/02-intermediate/app/server.js" -OutFile "app\server.js"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DFRZ7/TerraformTraining/main/02-intermediate/app/package.json" -OutFile "app\package.json"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DFRZ7/TerraformTraining/main/02-intermediate/app/public/index.html" -OutFile "app\public\index.html"
 ```
 
-> **Note:** Replace `C:\path\to\TerraformTraining` with the actual path where you cloned the training repository.
+**Option B: Copy from Cloned Repository**
 
-The `app` folder contains a simple Node.js application with a landing page:
+If you already cloned the training repository locally:
+
+```powershell
+# Replace the path with where you cloned the repo
+$RepoPath = "C:\Users\YourName\TerraformTraining"
+
+# Copy the app folder to your workspace
+Copy-Item -Path "$RepoPath\02-intermediate\app" -Destination "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate\app" -Recurse
+```
+
+**Option C: Create Files Manually**
+
+Create the files yourself. First, create the folder structure:
+
+```powershell
+cd "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate"
+New-Item -ItemType Directory -Path "app\public" -Force
+```
+
+Then create three files with the content provided by your instructor:
+
+- `app/server.js`
+- `app/package.json`
+- `app/public/index.html`
+
+---
+
+**Verify the app folder structure:**
+
+```powershell
+Get-ChildItem -Path "app" -Recurse
+```
+
+You should see:
 
 ```
 app/
