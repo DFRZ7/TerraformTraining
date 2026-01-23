@@ -28,7 +28,7 @@ Before starting, ensure you have completed:
 
 - Module 00: Prerequisites (Terraform, Azure CLI installed)
 - Module 01: Basics (understand init, plan, apply, destroy)
-- Authenticated to Azure with `az login`
+- Authenticated to Azure with `az login --tenant <tenant-id>`
 
 Set your Azure environment variables in PowerShell:
 
@@ -224,6 +224,14 @@ module "appservice" {
 - Configures the Azure Storage backend for remote state
 - Creates a resource group with consistent naming
 - Calls the App Service module (which we will create next)
+
+> **Why No Variables in the Backend Block?**
+>
+> You might wonder why we don't use variables like `var.storage_account_name` in the backend configuration. The reason is that **the backend is loaded before the rest of your Terraform configuration**—before variables, before providers, before any modules.
+>
+> Terraform needs to know where the state lives so it can even begin evaluating variables. That means **backend configuration must be static**.
+>
+> If you need flexibility, you pass parameters through `-backend-config` during `terraform init` (as we do in Action 15). This is a very common confusion point, so remember: **backend loading happens first**. This design allows the same Terraform code to serve many environments just by supplying different `-backend-config` parameters.
 
 Your folder now looks like this:
 
@@ -544,7 +552,16 @@ Open the URL in your browser to verify the deployment.
 
 Now that the infrastructure is ready, let's deploy a simple landing page to your App Service!
 
-### Action 19: Navigate to the App Folder
+### Action 19: Copy the App Folder
+
+Copy the `app` folder from the training repository to your working directory:
+
+```powershell
+# Copy the app folder from the repo to your workspace
+Copy-Item -Path "C:\path\to\TerraformTraining\02-intermediate\app" -Destination "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate\app" -Recurse
+```
+
+> **Note:** Replace `C:\path\to\TerraformTraining` with the actual path where you cloned the training repository.
 
 The `app` folder contains a simple Node.js application with a landing page:
 
@@ -676,6 +693,54 @@ In this module, you learned:
 **Error: Backend configuration changed**
 
 - Run `terraform init -reconfigure` to update the backend.
+
+**Error: App Service Status shows Quota Exceeded**
+
+- This could prevent the app service from running, we recommend to scale up or change region.
+
+---
+
+### Enabling Terraform Debug Logs
+
+If you encounter unexpected errors, enable detailed logging to help diagnose the issue:
+
+**Windows (PowerShell)**
+
+Use the `$env:` prefix to set these for your current session:
+
+```powershell
+$env:TF_LOG="TRACE"
+$env:TF_LOG_PATH="terraform-debug.log"
+terraform plan
+```
+
+**Linux / macOS (Bash/Zsh)**
+
+Use the `export` command to set them for your current session:
+
+```bash
+export TF_LOG="TRACE"
+export TF_LOG_PATH="terraform-debug.log"
+terraform plan
+```
+
+**One-Liner (Linux/macOS):** Run without changing your session permanently:
+
+```bash
+TF_LOG=TRACE TF_LOG_PATH=terraform-debug.log terraform plan
+```
+
+**Windows (Command Prompt / CMD)**
+
+Use the `set` command:
+
+```cmd
+set TF_LOG=TRACE
+set TF_LOG_PATH=terraform-debug.log
+terraform plan
+```
+
+> **Tip:** After running, check the `terraform-debug.log` file in your working directory for detailed trace information.
 
 ---
 
