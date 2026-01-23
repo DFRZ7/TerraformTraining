@@ -325,9 +325,11 @@ Create a new file named `dev.tfvars` in the `02-intermediate` folder:
 ```hcl
 environment     = "dev"
 location        = "canadacentral"
-project_name    = "tftraining"
+project_name    = "yourname-tf"  # Replace 'yourname' with your initials or name (e.g., "jsmith-tf")
 app_service_sku = "B1"
 ```
+
+> **Important:** App Service names must be **globally unique** across all of Azure. Replace `yourname` with your initials or a unique identifier (e.g., `jsmith-tf`, `df-training`, `team5-tf`). This ensures your App Service URL won't conflict with other students.
 
 **What this does:** Provides values for the development environment. You can create different `.tfvars` files for test and prod.
 
@@ -535,9 +537,11 @@ After completion, Terraform displays the outputs:
 ```
 Outputs:
 
-app_service_url = "https://tftraining-dev-app.azurewebsites.net"
-resource_group_name = "rg-tftraining-dev"
+app_service_url = "https://yourname-tf-dev-app.azurewebsites.net"
+resource_group_name = "rg-yourname-tf-dev"
 ```
+
+> **Note:** The URL will reflect your unique `project_name` from dev.tfvars.
 
 Open the URL in your browser to verify the deployment.
 
@@ -615,7 +619,9 @@ app/
 
 ### Action 20: Deploy the Application
 
-First, create a zip file of the application, then deploy it:
+First, create a zip file of the application, then deploy it.
+
+> **Note:** Replace `yourname-tf` with the `project_name` you set in dev.tfvars.
 
 ```powershell
 # Make sure you're in the 02-intermediate folder
@@ -624,8 +630,8 @@ cd "$env:USERPROFILE\Desktop\Terraform-Training-Workspace\02-intermediate"
 # Create a zip file from the app folder
 Compress-Archive -Path "app\*" -DestinationPath "app.zip" -Force
 
-# Deploy to App Service
-az webapp deploy --resource-group rg-tftraining-dev --name tftraining-dev-app --src-path "app.zip" --type zip
+# Deploy to App Service (replace yourname-tf with your project_name)
+az webapp deploy --resource-group rg-yourname-tf-dev --name yourname-tf-dev-app --src-path "app.zip" --type zip
 ```
 
 Wait 1-2 minutes for the deployment to complete, then refresh your browser to see the landing page!
@@ -638,11 +644,11 @@ Open `app/public/index.html` in VS Code and make changes:
 2. Update the colors
 3. Add your name
 
-Then redeploy:
+Then redeploy (remember to use your project_name):
 
 ```powershell
 Compress-Archive -Path "app\*" -DestinationPath "app.zip" -Force
-az webapp deploy --resource-group rg-tftraining-dev --name tftraining-dev-app --src-path "app.zip" --type zip
+az webapp deploy --resource-group rg-yourname-tf-dev --name yourname-tf-dev-app --src-path "app.zip" --type zip
 ```
 
 Refresh the browser to see your changes!
