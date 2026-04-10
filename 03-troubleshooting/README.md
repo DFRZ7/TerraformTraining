@@ -25,7 +25,7 @@ clean up easily.
 ### Step 1: Deploy the initial (working) infrastructure
 
 ```powershell
-cd labs/03-state-and-dependencies
+cd labs/03-troubleshooting
 terraform init
 terraform apply -auto-approve
 ```
