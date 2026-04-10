@@ -7,7 +7,7 @@
 ## Prerequisites
 
 - Azure CLI installed and authenticated (`az login`)
-- Terraform v1.5+ installed
+- Terraform v1.14.x installed
 - A valid Azure subscription — update the `subscription_id` in `main.tf` before starting
 - PowerShell terminal (all commands in this lab use PowerShell)
 
